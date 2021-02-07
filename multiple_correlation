@@ -23,7 +23,11 @@ model {
 
 generated quantities {
   matrix[V,V] Omega;
-  matrix[V,V] Sigma;
+  matrix[V,V] cov;
+  vector[V] x_rand;
+  
   Omega = multiply_lower_tri_self_transpose(Lrho);
-  Sigma = quad_form_diag(Omega, sigma); 
+  cov = quad_form_diag(Omega, sigma); 
+  
+  x_rand = multi_normal_rng(mu, cov);
 }
