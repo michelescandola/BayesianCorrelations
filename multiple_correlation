@@ -1,0 +1,29 @@
+data {
+    int<lower=1> N;  // number of observations
+    int<lower=2> V;  // number of variables
+    vector[V] x[N];  // input data: rows are observations, columns are the V variables
+}
+
+parameters {
+    vector[V] mu;                           // locations of the normal distributions
+    vector<lower=0>[V] sigma;               // scales of the normal distributions
+    cholesky_factor_corr[V] Lrho;           // correlation matrix
+}
+
+model {
+    // Noninformative priors on all parameters
+    target += uniform_lpdf(sigma | 0, 10);
+    target += normal_lpdf(mu | 0, 10);
+    target += lkj_corr_cholesky_lpdf(Lrho| 3);
+    
+    // Likelihood
+    // Multivariate Normal distribution
+    target += multi_normal_cholesky_lpdf(x | mu, diag_pre_multiply(sigma, Lrho));
+}
+
+generated quantities {
+  matrix[V,V] Omega;
+  matrix[V,V] Sigma;
+  Omega = multiply_lower_tri_self_transpose(Lrho);
+  Sigma = quad_form_diag(Omega, sigma); 
+}
